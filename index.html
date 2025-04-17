@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PopState Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+      }
+      .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        width: 300px;
+        text-align: center;
+      }
+      .close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        font-size: 20px;
+      }
+      button {
+        padding: 10px 15px;
+        margin: 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PopState Event Test</h1>
+    <p>This page demonstrates how to trigger a modal when the back button is pressed.</p>
+
+    <button id="navigationButton">Navigate Forward</button>
+    <button id="resetButton">Reset History State</button>
+    <button id="showModalButton">Show Modal Directly</button>
+
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2>Back Button Pressed!</h2>
+        <p>This modal appeared because you clicked the back button.</p>
+        <button id="closeModalButton">Close</button>
+      </div>
+    </div>
+
+    <div id="log">
+      <h3>Debug Log:</h3>
+      <pre id="logContent"></pre>
+    </div>
+
+    <script>
+      // Debug logging function
+      function log(message) {
+        const logElement = document.getElementById("logContent");
+        logElement.textContent += new Date().toISOString().substring(11, 19) + ": " + message + "\n";
+        console.log(message);
+      }
+
+      // Variables to track state
+      let currentState = null;
+
+      // Show and hide modal
+      function showModal() {
+        document.getElementById("modal").style.display = "block";
+        log("Modal shown");
+      }
+
+      function hideModal() {
+        document.getElementById("modal").style.display = "none";
+        log("Modal hidden");
+      }
+
+      // Set up history state for back button detection
+      function setupHistoryState() {
+        // First state - this is what we'll detect when the user hits back
+        const firstState = { id: "initialState", timestamp: Date.now() };
+
+        // Second state - to move forward from the initial state
+        const secondState = { id: "forwardState", timestamp: Date.now() };
+
+        // Push the first state
+        history.pushState(firstState, null, null);
+        currentState = firstState;
+        log("Initial state pushed: " + JSON.stringify(firstState));
+
+        // Push the second state to move "forward"
+        history.pushState(secondState, null, null);
+        log("Forward state pushed: " + JSON.stringify(secondState));
+      }
+
+      // Initialize everything
+      window.addEventListener("DOMContentLoaded", function () {
+        log("Page loaded");
+
+        // Set up history
+        setupHistoryState();
+
+        // Set up popstate listener
+        window.addEventListener("popstate", function (event) {
+          log("Popstate event triggered");
+          log("Event state: " + JSON.stringify(event.state));
+          log("Current state: " + JSON.stringify(currentState));
+
+          if (event.state && currentState && event.state.id === "initialState") {
+            log("Back button detected!");
+            showModal();
+
+            // Optionally push another state to prevent further back actions
+            history.pushState({ id: "afterBackState", timestamp: Date.now() }, null, null);
+          }
+        });
+
+        // Set up modal close button
+        document.getElementById("closeModal").addEventListener("click", hideModal);
+        document.getElementById("closeModalButton").addEventListener("click", hideModal);
+
+        // Manual navigation button
+        document.getElementById("navigationButton").addEventListener("click", function () {
+          history.pushState({ id: "manualNavigation", timestamp: Date.now() }, null, null);
+          log("Manual navigation state pushed");
+        });
+
+        // Reset button
+        document.getElementById("resetButton").addEventListener("click", function () {
+          log("Resetting history state");
+          setupHistoryState();
+        });
+
+        // Show modal directly button
+        document.getElementById("showModalButton").addEventListener("click", showModal);
+      });
+    </script>
+  </body>
+</html>
