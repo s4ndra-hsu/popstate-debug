@@ -48,6 +48,7 @@
     </head>
     <body>
         <h1>PopState Event Test</h1>
+        <h2><a href="./hash.html">TO HASH TEST</a></h2>
         <p>
             This page demonstrates how to trigger a modal when the back button
             is pressed.
@@ -128,7 +129,7 @@
                 log("Initial state pushed: " + JSON.stringify(firstState));
 
                 // Push the second state to move "forward"
-                history.pushState(secondState, null, null);
+                history.pushState(secondState, null, "#newSection");
                 log("Forward state pushed: " + JSON.stringify(secondState));
             }
 
@@ -164,6 +165,11 @@
                             null
                         );
                     }
+                });
+
+                window.addEventListener("hashchange", function () {
+                    const currentHash = window.location.hash;
+                    if (!hash) showModal();
                 });
 
                 // Set up modal close button
